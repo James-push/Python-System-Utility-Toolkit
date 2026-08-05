@@ -1,0 +1,13 @@
+{
+  "repository": "eazyboytt/Python-System-Utility-Toolkit",
+  "release_tag": "installers-v1",
+  "installers": [
+    {"name": "OBS Studio", "asset": "obs.exe", "silent_args": "/S"},
+    {"name": "AnyDesk", "asset": "anydesk.exe", "silent_args": null},
+    {"name": "TeamLogger", "asset": "teamlogger.msi", "silent_args": "/quiet /qn"},
+    {"name": "Zoom", "asset": "zoom.exe", "silent_args": "/quiet"},
+    {"name": "Microsoft Teams", "asset": "teams.exe", "silent_args": "/s"},
+    {"name": "WinRAR", "asset": "winrar.exe", "silent_args": "/S"},
+    {"name": "Jabra Direct", "asset": "jabra.exe", "silent_args": "/quiet"}
+  ]
+}
