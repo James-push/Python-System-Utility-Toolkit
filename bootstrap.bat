@@ -1,7 +1,7 @@
 @echo off
 setlocal enabledelayedexpansion
 
-set "REPO_URL=https://github.com/iantolentino/Python-System-Utility-Toolkit.git"
+set "REPO_URL=https://github.com/eazyboytt/Python-System-Utility-Toolkit.git"
 set "DEST=%USERPROFILE%\Python-System-Utility-Toolkit"
 
 echo ============================================

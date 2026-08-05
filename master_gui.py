@@ -6,6 +6,9 @@ import tkinter as tk
 from tkinter import ttk, messagebox, scrolledtext
 import sys
 import shutil
+from pathlib import Path
+
+from installer_store import InstallerStoreError, load_catalog, prepare_installers
 
 VERSION = "1.1.0"
 
@@ -92,7 +95,7 @@ class MasterScriptApp:
             ("\ue88e", "Disable USB Storage", "Turn off USB mass storage access through USBSTOR.", self.disable_usb, "#7c3aed"),
             ("\ue7e8", "High Performance", "Set AC power profile and prevent idle sleep.", self.set_power_plan, "#d97706"),
             ("\ue895", "Sync Time PH", "Set the Windows timezone used by the provisioning flow.", self.sync_time, "#0284c7"),
-            ("\ue896", "Install Software", "Launch bundled installers from the detected flash drive.", self.install_software, "#16a34a"),
+            ("\ue896", "Install Software", "Download verified installers from GitHub Releases.", self.install_software, "#16a34a"),
             ("\ue8b0", "Disable Extensions", "Block browser extensions for installed supported browsers.", self.disable_all_browser_extensions, "#be123c"),
             ("\ue715", "Outlook 100GB", "Increase OST/PST size limits for Outlook profiles.", self.increase_outlook_limit, "#4f46e5"),
             ("\ue77b", "Clear Teams Profile", "Remove Teams and Microsoft identity login cache.", self.clear_teams_profile, "#0891b2"),
@@ -361,23 +364,22 @@ class MasterScriptApp:
         self.log_message("Timezone synced.")
 
     def install_software(self):
-        if not self.require_flashdrive():
-            return
-
         import shutil
         import tempfile
 
-        self.log_message("Installing software automatically...")
+        self.log_message("Downloading and verifying software installers...")
+        try:
+            app_dir = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent))
+            catalog = load_catalog(app_dir / "installers.json")
+            cache_root = Path(os.environ.get("LOCALAPPDATA", tempfile.gettempdir())) / "SystemUtilityToolkit" / "installers"
+            downloaded = prepare_installers(catalog, cache_root)
+            installers = {item["name"]: (item["local_path"], item.get("silent_args")) for item in downloaded}
+        except (OSError, ValueError, InstallerStoreError) as exc:
+            self.log_message(f"Unable to prepare installers: {exc}")
+            messagebox.showerror("Installer download failed", str(exc))
+            return
 
-        installers = {
-            "OBS Studio": (os.path.join(self.flashdrive, "installers", "obs.exe"), "/S"),
-            "AnyDesk": (os.path.join(self.flashdrive, "installers", "anydesk.exe"), None),  # special handling
-            "TeamLogger": (os.path.join(self.flashdrive, "installers", "teamlogger.msi"), "/quiet /qn"),
-            "Zoom": (os.path.join(self.flashdrive, "installers", "zoom.exe"), "/quiet"),
-            "Microsoft Teams": (os.path.join(self.flashdrive, "installers", "teams.exe"), "/s"),
-            "WinRAR": (os.path.join(self.flashdrive, "installers", "winrar.exe"), "/S"),
-            "Jabra Direct": (os.path.join(self.flashdrive, "installers", "jabra.exe"), "/quiet"),  
-        }
+        self.log_message("Installers downloaded and verified. Starting installation...")
 
         processes = []
 
@@ -389,6 +391,8 @@ class MasterScriptApp:
             self.log_message(f"Launching {name} installation...")
 
             try:
+                installer_args = args or ""
+
                 # 🔹 Special handling for AnyDesk
                 if name == "AnyDesk":
                     install_dir = r"C:\Program Files (x86)\AnyDesk"
@@ -417,23 +421,12 @@ class MasterScriptApp:
                     ]
                     p = subprocess.Popen(cmd, shell=True)
                 
-                elif name == "Jabra Direct":
-                    temp_jabra_path = os.path.join(tempfile.gettempdir(), "jabradirect_installer.exe")
-                    shutil.copy2(path, temp_jabra_path)
-                    cmd = [
-                        "powershell",
-                        "-Command",
-                        f'Start-Process -FilePath "{temp_jabra_path}" -ArgumentList \'/quiet\' -Verb RunAs'
-                    ]
-                    p = subprocess.Popen(cmd, shell=True)
-
-
                 # 🔹 Normal EXE installers
                 elif path.endswith(".exe"):
                     cmd = [
                         "powershell",
                         "-Command",
-                        f'Start-Process -FilePath "{path}" -ArgumentList \'{args}\' -Verb RunAs'
+                        f'Start-Process -FilePath "{path}" -ArgumentList \'{installer_args}\' -Verb RunAs'
                     ]
                     p = subprocess.Popen(cmd, shell=True)
 
@@ -442,7 +435,7 @@ class MasterScriptApp:
                     cmd = [
                         "powershell",
                         "-Command",
-                        f'Start-Process -FilePath "msiexec.exe" -ArgumentList \'/i "{path}" {args}\' -Verb RunAs'
+                        f'Start-Process -FilePath "msiexec.exe" -ArgumentList \'/i "{path}" {installer_args}\' -Verb RunAs'
                     ]
                     p = subprocess.Popen(cmd, shell=True)
 
