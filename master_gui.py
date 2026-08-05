@@ -391,6 +391,8 @@ class MasterScriptApp:
             self.log_message(f"Launching {name} installation...")
 
             try:
+                installer_args = args or ""
+
                 # 🔹 Special handling for AnyDesk
                 if name == "AnyDesk":
                     install_dir = r"C:\Program Files (x86)\AnyDesk"
@@ -419,23 +421,12 @@ class MasterScriptApp:
                     ]
                     p = subprocess.Popen(cmd, shell=True)
                 
-                elif name == "Jabra Direct":
-                    temp_jabra_path = os.path.join(tempfile.gettempdir(), "jabradirect_installer.exe")
-                    shutil.copy2(path, temp_jabra_path)
-                    cmd = [
-                        "powershell",
-                        "-Command",
-                        f'Start-Process -FilePath "{temp_jabra_path}" -ArgumentList \'/quiet\' -Verb RunAs'
-                    ]
-                    p = subprocess.Popen(cmd, shell=True)
-
-
                 # 🔹 Normal EXE installers
                 elif path.endswith(".exe"):
                     cmd = [
                         "powershell",
                         "-Command",
-                        f'Start-Process -FilePath "{path}" -ArgumentList \'{args}\' -Verb RunAs'
+                        f'Start-Process -FilePath "{path}" -ArgumentList \'{installer_args}\' -Verb RunAs'
                     ]
                     p = subprocess.Popen(cmd, shell=True)
 
@@ -444,7 +435,7 @@ class MasterScriptApp:
                     cmd = [
                         "powershell",
                         "-Command",
-                        f'Start-Process -FilePath "msiexec.exe" -ArgumentList \'/i "{path}" {args}\' -Verb RunAs'
+                        f'Start-Process -FilePath "msiexec.exe" -ArgumentList \'/i "{path}" {installer_args}\' -Verb RunAs'
                     ]
                     p = subprocess.Popen(cmd, shell=True)
 

@@ -8,7 +8,7 @@ $assetPath = (Resolve-Path -LiteralPath $AssetDirectory).Path
 $files = @(Get-ChildItem -LiteralPath $assetPath -File | Where-Object Name -ne "SHA256SUMS")
 if ($files.Count -eq 0) { throw "No installer assets found in $assetPath" }
 
-$required = @("obs.exe", "anydesk.exe", "teamlogger.msi", "zoom.exe", "teams.exe", "winrar.exe", "jabra.exe")
+$required = @("obs.exe", "anydesk.exe", "teamlogger.msi", "zoom.exe", "teams.exe", "winrar.exe", "office.exe", "rustdesk.exe")
 $missing = @($required | Where-Object { -not (Test-Path -LiteralPath (Join-Path $assetPath $_)) })
 if ($missing.Count -gt 0) { throw "Missing required assets: $($missing -join ', ')" }
 

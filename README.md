@@ -28,7 +28,7 @@ Previously, **Install Software** only searched for seven hard-coded files in an 
 
 1. Install and sign in to the [GitHub CLI](https://cli.github.com/): `gh auth login`.
 2. Put the seven files below in a folder outside the repository. Keep these exact names:
-   `obs.exe`, `anydesk.exe`, `teamlogger.msi`, `zoom.exe`, `teams.exe`, `winrar.exe`, and `jabra.exe`.
+   `obs.exe`, `anydesk.exe`, `teamlogger.msi`, `zoom.exe`, `teams.exe`, `winrar.exe`, `office.exe`, and `rustdesk.exe`.
 3. From the repository root, run:
 
    ```powershell
